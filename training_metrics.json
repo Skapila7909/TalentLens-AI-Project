@@ -1,0 +1,24 @@
+{
+  "source_rows": 9000,
+  "clean_unique_resumes": 5437,
+  "conflicting_texts_excluded": 302,
+  "exact_duplicate_rows_removed": 2599,
+  "category_counts_after_cleaning": {
+    "Datawarehousing, ETL, Informatica Resumes": 880,
+    "SQL Developers Resumes": 734,
+    "Business Intelligence, Business Object Resumes": 701,
+    "Web Developer Resumes": 691,
+    "Project Manager Resumes": 659,
+    "Network and Systems Administrators Resumes": 652,
+    "Business Analyst (BA) Resumes": 569,
+    "Recruiter Resumes": 333,
+    "Java Developers/Architects Resumes": 218
+  },
+  "test_rows": 1088,
+  "accuracy": 0.8777573529411765,
+  "balanced_accuracy": 0.870969705866365,
+  "method": "80/20 stratified holdout; exact normalized text duplicates removed; texts with conflicting labels excluded; TF-IDF word unigrams/bigrams + LinearSVC class_weight=balanced; only first 6000 characters used per resume; random_state=42",
+  "limitation": "Metric is for the dataset's nine categories only and is not resume-to-job match accuracy. This evaluation is on a random holdout after duplicate/conflict cleaning, not an external dataset.",
+  "exact_duplicate_rows_removed_after_conflict_exclusion": 2599,
+  "duplicate_text_rows_in_raw_dataset": 3261
+}

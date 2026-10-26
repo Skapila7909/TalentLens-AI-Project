@@ -1,55 +1,56 @@
-# TalentLens — AI Resume Skill Analyzer
+# TalentLens: Resume Skill Analyzer + Category Classifier
 
-A polished CBSE Class 12 Artificial Intelligence capstone project that analyzes a resume against a target job description.
+TalentLens is a Streamlit app that extracts text from PDF/DOCX/TXT resumes, detects skills, compares them with a job description, reports missing skills, checks basic resume structure, and predicts a resume category using a trained text classifier.
 
-## Features
+## What works in this version
 
-- PDF, DOCX and TXT resume upload
-- Automatic skill extraction
-- Target-job skill extraction
-- Skill match percentage
-- Missing-skill analysis
-- Category-level skill breakdown
-- ATS-style structural readiness score
-- Action plan for improving the resume
-- Built-in demo dataset
-- Runs locally without sending resume content to an external API
+- PDF, DOCX, and TXT upload; DOCX tables, headers, and footers are included.
+- Boundary-aware skill matching and common aliases (for example `sklearn` → `scikit-learn`, `PowerBI` → `power bi`).
+- A one-skill job description such as `Python` is valid and should return a 100% overlap when Python is detected in the resume.
+- If no known target skills are detected, the app shows `N/A` rather than a misleading 0%.
+- A separate TF-IDF + Linear SVM classifier predicts one of the nine categories in the supplied dataset.
+- Automated unit tests for core matching behavior.
+- No Transformers/PyTorch/GPU downloads required.
 
-## Run
+## Run locally
+
+Python 3.11 or 3.12 is recommended.
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate        # Linux/macOS
-# .venv\Scripts\activate         # Windows
-
-pip install -r requirements.txt
-streamlit run app.py
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python -m unittest -v test_talentlens_core.py
+python -m streamlit run app.py
 ```
 
-## Project structure
+For fish shell, activate with `source .venv/bin/activate.fish`. Open `http://localhost:8501`.
 
-```text
-resume_skill_analyzer/
-├── app.py
-├── requirements.txt
-├── README.md
-├── data/
-├── docs/
-└── report/
+## Dataset and classifier
+
+The committed `resume_category_model.joblib` was trained from the provided 9,000-row resume CSV after: (1) normalizing resume text for duplicate checks, (2) removing exact duplicate texts, and (3) excluding texts assigned to conflicting categories. This left 5,437 unique, non-conflicting resumes across nine categories. The model uses the first 6,000 characters of each resume, TF-IDF word unigrams/bigrams, and a class-weighted LinearSVC.
+
+On a stratified 20% holdout split, the saved evaluation recorded **87.8% accuracy** and **87.1% balanced accuracy**. See `training_metrics.json` for details. This is a benchmark on the same dataset, not proof of generalization to all professions or a resume-to-job match accuracy score. The classifier only predicts the nine categories represented in the training data.
+
+To retrain using your own downloaded CSV:
+
+```bash
+python train_classifier.py "Resume dataset.csv"
 ```
 
-## AI/NLP pipeline
+This writes `resume_category_model.joblib` and `training_metrics.json`. The CSV is intentionally not included in this repository because it is large and may contain personal information. Verify the Kaggle dataset license and usage terms before publicly deploying or redistributing derived artifacts.
 
-Resume → text extraction → normalization → skill extraction → target skill extraction → matching → scoring → recommendations.
+## Deploy on Streamlit Community Cloud
 
-The current version uses a resume-specific BERT Named Entity Recognition (NER) model (`yashpwr/resume-ner-bert`) to extract entities, especially SKILLS, from resume/job text. A curated vocabulary remains as a transparent fallback if the model cannot be loaded. This is intentional for a school project: every prediction can be explained in a viva.
+1. Upload the project files to GitHub, including `talentlens_core.py`, `resume_category_model.joblib`, `requirements.txt`, and `app.py`.
+2. Do not upload `.venv`, raw resumes, or the original dataset CSV.
+3. Set the Streamlit main file to `app.py`.
+4. Deploy.
 
-## Possible future improvements
+## Important limitations
 
-- TF-IDF + machine-learning skill classification
-- Named Entity Recognition (NER)
-- semantic similarity using sentence embeddings
-- job-role classification
-- multilingual resume support
-- learned ranking model
-- anonymized benchmark dataset
+- The category model covers only nine categories and cannot accurately label every profession.
+- The skill score is a transparent overlap metric, not a hiring decision or proof of competence.
+- The skill vocabulary will miss terms not listed; OCR is not included for image-only scanned PDFs.
+- ATS checks are simple structural signals, not a certification of compatibility with any employer's ATS.
+- Test with fictional or consented resumes and avoid storing personal resume data in public repositories.
